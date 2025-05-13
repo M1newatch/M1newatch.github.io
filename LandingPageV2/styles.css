@@ -2,6 +2,12 @@ h1 {
     text-align: center;
 }
 
+.content {
+ position:fixed;
+ z-index: 10;
+ width: 100%;
+}
+
 a:visited {
     color:  #800080;
 }
