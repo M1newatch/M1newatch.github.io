@@ -1,13 +1,30 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
 h1 {
     text-align: center;
+    font-family: Century Gothic, sans-serif;
+    color: white;
 }
 
 .content {
- position:fixed;
- z-index: 10;
- width: 100%;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background-color: indigo; /* Optional: makes it stand out */
+  padding: 10px 0;
+  z-index: 1000;
+  text-align: center;
 }
 
 a:visited {
     color:  #800080;
+}
+
+main {
+  padding-top: 80px; /* Adjust based on your header height */
 }
