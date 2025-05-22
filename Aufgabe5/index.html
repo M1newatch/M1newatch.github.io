@@ -8,21 +8,23 @@
     </head>
     <body>
         <main>
-            <section name="gallery" id="gallery">
-                <button id="btn1">Test</button>
-                <p id="testtext">Test Text</p>
-                <h2>Gallery</h2>
-                <script src="buttonScript.js"></script>
-                <div class="images">
-                    <img src="https://images.pexels.com/photos/18355843/pexels-photo-18355843/free-photo-of-madison-street-in-new-york-city-usa.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2">
-                    <img src="https://images.pexels.com/photos/31669033/pexels-photo-31669033/free-photo-of-tranquil-black-and-white-swans-on-a-lake.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2">
-                    <img src="https://images.pexels.com/photos/32053424/pexels-photo-32053424/free-photo-of-black-and-white-urban-alley-with-tower.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2">
-                    <img src="https://images.pexels.com/photos/27956127/pexels-photo-27956127/free-photo-of-black-and-white-castle-black-amp-white.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2&h=750">
+            <div class="headerContainer">
+                <h1>Gallery</h1>
+                <div class="buttonContainer">
+                    <button id="editButton" class="editButton">Edit Mode</button>
                 </div>
-            </section>
-            <section name="buttons">
-                <script src="buttonScript.js"></script>
-            </section>
+            </div>
+            <form id="addImageForm" class="editOnly">
+                <input type="url" id="imageUrl" placeholder="Bild-URL" required>
+                <input type="text" id="imageTitle" placeholder="Titel" required>
+                <input type="text" id="imageDescription" placeholder="Beschreibung" required>
+                <button type="submit">Add Picture</button>
+            </form>
+            <div class="images" id="imageContainer">
+            </div>
+                <section name="gallery" id="gallery">
+                    <script src="buttonScript.js"></script>
+                </section>
         </main>
     </body>
 </html>
