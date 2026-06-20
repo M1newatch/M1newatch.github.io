@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Flashlight Sync</title>
+    <style>
+        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #111; color: white; margin: 0; }
+        button { padding: 15px 30px; font-size: 1.2rem; cursor: pointer; border: none; border-radius: 8px; background: #1DB954; color: white; margin: 10px; }
+        button:disabled { background: #444; color: #888; cursor: not-allowed; }
+        #status { margin-top: 20px; text-align: center; max-width: 80%; line-height: 1.5; color: #ccc;}
+        #meter { width: 80%; height: 20px; background: #333; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        #fill { width: 0%; height: 100%; background: #1DB954; transition: width 0.05s; }
+    </style>
+</head>
+<body>
+
+    <h2>Music Sync Flashlight</h2>
+    <button id="startBtn">Start Listening</button>
+    <button id="stopBtn" disabled>Stop</button>
+    
+    <div id="meter"><div id="fill"></div></div>
+    <div id="status">Waiting to start...<br><small>(Requires Android Chrome & HTTPS)</small></div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const fill = document.getElementById('fill');
+
+        let stream = null;
+        let videoTrack = null;
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let loopId = null;
+        let torchState = false;
+        let isToggling = false;
+
+        startBtn.addEventListener('click', async () => {
+            try {
+                status.innerHTML = "Requesting camera & mic permissions...";
+                
+                // Request mic and the rear camera (required for torch)
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: true,
+                    video: { facingMode: 'environment' }
+                });
+
+                videoTrack = stream.getVideoTracks()[0];
+                
+                // Check if the device's camera actually has a flashlight we can use
+                const capabilities = videoTrack.getCapabilities();
+                if (!capabilities.torch) {
+                    throw new Error("Flashlight API is not supported on this device or browser.");
+                }
+
+                // Set up Audio Analysis
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                status.innerHTML = "Listening to audio! Play some music.";
+
+                loop();
+
+            } catch (err) {
+                status.innerHTML = `<strong>Error:</strong> ${err.message}`;
+                console.error(err);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (loopId) cancelAnimationFrame(loopId);
+            if (videoTrack) setTorch(false);
+            if (stream) stream.getTracks().forEach(track => track.stop());
+            if (audioContext) audioContext.close();
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            status.innerHTML = "Stopped.";
+            fill.style.width = "0%";
+        });
+
+        // Function to safely toggle the flashlight without crashing the browser
+        async function setTorch(state) {
+            if (isToggling || torchState === state) return;
+            isToggling = true;
+            try {
+                await videoTrack.applyConstraints({ advanced: [{ torch: state }] });
+                torchState = state;
+            } catch (err) {
+                console.error("Failed to toggle torch", err);
+            }
+            isToggling = false;
+        }
+
+        // Main animation loop
+        function loop() {
+            loopId = requestAnimationFrame(loop);
+            analyser.getByteFrequencyData(dataArray);
+
+            // Calculate average volume
+            let sum = 0;
+            for(let i = 0; i < dataArray.length; i++) {
+                sum += dataArray[i];
+            }
+            let average = sum / dataArray.length;
+            
+            // Update the visual UI meter
+            fill.style.width = `${Math.min(average, 100)}%`;
+
+            // Turn on flashlight if volume is above 75 (Adjust this threshold as needed!)
+            if (average > 75) {
+                setTorch(true);
+            } else {
+                setTorch(false);
+            }
+        }
+    </script>
+</body>
+</html>
